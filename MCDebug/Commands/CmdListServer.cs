@@ -27,6 +27,12 @@ namespace MCDebug.Commands {
         }
 
         public override void Use(string args) {
+
+            if (Manager.AllServers.Count == 0) {
+                Console.WriteLine("No Servers loaded. (Please check database to verify that no servers have been created)");
+                return;
+            }
+
             foreach (Server srv in Manager.AllServers) {
                 Command.cmd.ExecuteCommand("server", srv.DisplayName + " info");
             }
