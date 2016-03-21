@@ -71,10 +71,17 @@ namespace MCDebug {
                     case "-service-mode":
                         ServiceMode = true;
                         break;
+                    case "-verbose":
+                        Logger.OnLog += Logger_OnLog;
+                        break;
                     default:
                         break;
                 }
             }
+        }
+
+        private static void Logger_OnLog(string message, LogType type) {
+            Console.WriteLine(message);
         }
 
         //Anything that the Program depends on before loading the service or command prompt

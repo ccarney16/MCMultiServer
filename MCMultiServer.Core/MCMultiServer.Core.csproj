@@ -82,24 +82,17 @@
       <HintPath>..\packages\System.Data.SQLite.Linq.1.0.98.1\lib\net45\System.Data.SQLite.Linq.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Management" />
-    <Reference Include="System.Management.Automation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Management.Automation.6.1.7601.17515\lib\net45\System.Management.Automation.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Databases\SQLite.cs" />
     <Compile Include="Databases\SQLite_info.cs" />
     <Compile Include="Net\Database.cs" />
-    <Compile Include="Net\Logger.cs" />
+    <Compile Include="Net\Old_Logger.cs" />
     <Compile Include="Net\Manager.cs" />
+    <Compile Include="Net\Logger.cs" />
     <Compile Include="Net\Paths.cs" />
     <Compile Include="Net\Plugins\Plugin.cs" />
     <Compile Include="Net\Plugins\PluginManager.cs" />

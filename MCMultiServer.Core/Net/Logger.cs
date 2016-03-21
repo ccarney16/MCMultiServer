@@ -1,79 +1,112 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Timers;
 
-//Basic Logging Class, this needs to be rewritten.
+//Provided from MCSharp, modified for use in MCMultiServer, Licensed under the MIT License.
 namespace MCMultiServer.Net {
-
-    //Basic Log Types, will extend later.
-    public enum LogType : byte {
-        Info = 0,
-        Warning = 1,
-        Error = 2
-    }
-
     public static class Logger {
-        private static string formatTime = "MM/dd/yyyy H:mm:ss zzz";
-        private static string dateTime { get { return (DateTime.Now.ToString(formatTime)); } }
-        private static List<string> RecentLog = new List<string>();
+        const string LogDirectory = "logs/";
+        const string LogFileName = "mcms";
 
-        private static Timer flushTimer = new Timer(10000);
+        const string TimeFormat = "hh:mm:ss tt";
 
-        public static void Init() {
-            flushTimer.Elapsed += FlushTimer_Elapsed;
-        }
+        static string shortDateTime = "dd/MM/yyyy hh:mm:ss tt";
+        static string longDateTime = "dddd, MMMM dd, yyyy - hh:mm tt (K)";
 
-        private static void FlushTimer_Elapsed(object sender, ElapsedEventArgs e) {
-            FlushToTextFile(RecentLog);
-        }
+        static string SessionStart = DateTime.Now.ToString(longDateTime);
+        static LogType errorTypes;
 
-        public static void Write(LogType type, string message, params object[] values) { Write(type, String.Format(message, values)); }
-        public static void Write(LogType type, string message) {
-            WriteToConsole(type, message);
-            string LogMessage = ConstructLogMessage(type, message);
-            UpdateLog(LogMessage);
-        }
+        public delegate void LogHandler(string message, LogType type);
+        public static event LogHandler OnLog;
 
-        //Used for debugging
-        private static void WriteToConsole(LogType type, string message) {
-            Console.WriteLine("[" + DateTime.Now.ToString(formatTime) + "] " + message);
-        }
-
-        private static string ConstructLogMessage(LogType type, string message) {
-            string LogMessage = "[" + DateTime.Now.ToString(formatTime) + "]"
-                               + "ID=" + type.ToString() +
-                               " : " + message;
-
-            return LogMessage;
-        }
-
-        /* This method updates the Log List based on the Write() method */
-        private static void UpdateLog(string message) {
-            RecentLog.Add(message);
-            //WriteToTextFile(RecentLog);
-        }
-
-        /* File writing */
-
-        // takes a single message and writes to a text file
-        private static void FlushToTextFile(string msg) {
-            string path = @"log\TempName.txt"; // Temporary
-
-            using (StreamWriter sw = new StreamWriter(path)) {
-                sw.WriteLine(msg);
+        static Logger() {
+            if (!Directory.Exists(LogDirectory)) {
+                Directory.CreateDirectory(LogDirectory);
             }
+
+            // Get our log files ready
+            PrepareLogFile(LogFileName);
+
+            errorTypes |= LogType.Error;
+
+            // Add our file writer to the log
+            OnLog += HandleLog;
         }
 
-        //overload to allow a list to be input instead of a single message
-        private static void FlushToTextFile(List<string> log) {
-            string path = @"log\TempName.txt"; // Temporary
-            using (StreamWriter sw = new StreamWriter(path)) {
-                foreach (string msg in log) {
-                    sw.WriteLine(msg);
+        private static void HandleLog(string errorMessage, LogType type) {
+            // Format our output string
+            string message = "[" + DateTime.Now.ToString(shortDateTime) + "]"
+                           + "[" + Enum.GetName(typeof(LogType), type) + "]"
+                           + " - " + errorMessage;
+
+            WriteLog(message, LogFileName);
+        }
+
+        private static void WriteLog(string message, string filename) {
+            bool appendHeader = false;
+            string today = DateTime.Now.ToString("-MM-dd-yyyy");
+            TextWriter logStream = null;
+
+            try {
+                // If we're on a new day, append a header to the file
+                if (!File.Exists(LogDirectory + filename + today + ".log")) {
+                    appendHeader = true;
+                }
+
+                // Open the log file
+                logStream = new StreamWriter(LogDirectory + filename + today + ".log", true);
+
+                // Append the header if its a new day
+                if (appendHeader) {
+                    // Add session header
+                    logStream.WriteLine("==================== Session Continued ==================");
+                    logStream.WriteLine(SessionStart);
+                    logStream.WriteLine("=======================================================");
+                }
+
+
+                // Write contents
+                logStream.WriteLine(message);
+            } catch { } finally {
+                if (logStream != null) {
+                    logStream.Close();
                 }
             }
         }
-    }
 
+        internal static void PrepareLogFile(string filename) {
+            string today = DateTime.Now.ToString("-MM-dd-yyyy");
+            TextWriter logStream = null;
+
+            try {
+                // Open the log file
+                logStream = new StreamWriter(LogDirectory + filename + today + ".log", true);
+
+                // Add session header
+                logStream.WriteLine("==================== Session Start ====================");
+                logStream.WriteLine(SessionStart);
+                logStream.WriteLine("=======================================================");
+            } finally {
+                // Close the log file no matter what happens
+                if (logStream != null) {
+                    logStream.Close();
+                }
+            }
+        }
+
+
+        public static void Write(string message) {
+            Write(LogType.Info, message);
+        }
+
+        
+        public static void Write(LogType type, string message) {
+            if (OnLog != null) {
+                OnLog(message, type);
+            }
+        }
+
+        public static void Write(LogType type, string message, params object[] values) {
+            Write(type, String.Format(message, values));
+        }
+    }
 }

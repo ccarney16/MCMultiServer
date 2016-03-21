@@ -23,6 +23,7 @@ namespace MCMultiServer.Databases {
             //Check to make sure the file exists in some form or another
             if (!System.IO.File.Exists(dbFile)) {
                 try {
+                    base.OnLog("database file being created");
                     SQLiteConnection.CreateFile(dbFile);
                 } catch (System.IO.IOException ex) {
                     throw ex;

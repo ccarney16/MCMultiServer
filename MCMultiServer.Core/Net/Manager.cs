@@ -19,6 +19,7 @@ namespace MCMultiServer.Net {
         //init system
         public static void Init() {
             if (_isRunning) throw new ArgumentException("manager is already running");
+
             Logger.Write(LogType.Info, "starting mcmultiserver manager");
 
             //check environment
@@ -37,7 +38,6 @@ namespace MCMultiServer.Net {
             //Assembly assem = Assembly.LoadFile(Paths.ConfigDirectory + "/MCMultiServer.Web.dll");
             //ResourceManager rm = new ResourceManager("MCMultiServer.Web.Properties.Resources", assem);
             //Logger.Write(LogType.Info, rm.GetString("plugin_data"));
-            
 
             Database.SetDatabase(Settings.Database);
 
@@ -61,7 +61,7 @@ namespace MCMultiServer.Net {
                 }
             } else {
                 //basic linux support
-                Logger.Write(LogType.Warning, "Checking for Java is currently not supported in Unix like systems, setting defaults");
+                Logger.Write(LogType.Warning, "checking for Java is currently not supported in Unix like systems, setting defaults");
                 Paths.JVMInstance = new JavaInstance("DEFAULT_JRE", "/usr/bin/");
             }
 
@@ -79,16 +79,16 @@ namespace MCMultiServer.Net {
             ServerProperties[] srvproplist = Database.GetAllServers();
             if (srvproplist.Length != 0) {
                 foreach (ServerProperties prop in srvproplist) {
-                    AddServer(prop.ServerID);
-
                     //make sure that if an unclean shutdown occured that all processes are killed. will change if possible to a normal shutdown.
                     if (File.Exists(Paths.ServerDirectory + "/" + prop.ServerID.ToString() + "/minecraft.pid")) {
+                        Logger.Write(LogType.Warning, "unclean shutdown detected for server '{0}', checking and shutting down process", prop.ServerID);
                         try {
                             int procid = Convert.ToInt32(File.ReadAllText(Paths.ServerDirectory + "/" + prop.ServerID.ToString() + "/minecraft.pid"));
                             System.Diagnostics.Process proc = System.Diagnostics.Process.GetProcessById(procid);
                             proc.Kill();
                         } catch {}
                     }
+                    AddServer(prop.ServerID);
                     if (Settings.AutoStart) {
                         if (!AllServers.GetServer(prop.ServerID).IsRunning) {
                             StartServer(prop.ServerID);
@@ -191,29 +191,25 @@ namespace MCMultiServer.Net {
             if (serv != null) {
                 if (serv.IsRunning) { serv.Shutdown(); }
                 AllServers.Remove(serv);
+                Logger.Write(LogType.Info, "server '{0}' was removed from manager", serv.ID);
                 return true;
             }
             return false;
         }
 
         //Deletes all data responding to the id
-        public static Boolean DropServer(Guid serverID, Boolean force = false) {
+        public static Boolean DropServer(Guid serverID) {
             if (!_isRunning) throw new ArgumentException("manager is not running");
             if (serverID == null || serverID == Guid.Empty) throw new ArgumentNullException("server id cannot be null or empty");
 
             Server serv = AllServers.GetServer(serverID);
 
-            //if we get a running server with the forcekill flag off, we dont drop it.
-            if (serv != null) { if (serv.IsRunning && force == false) { return false; } }
+            if (serv != null) { if (serv.IsRunning) { return false; } }
 
             if (Database.GetServerProperties(serverID) != null) {
-                //Add code to drop the data
-            } else { Logger.Write(LogType.Error, "Database does not contain {0}!", serverID.ToString()); }
-
-            if (Directory.Exists(Paths.JarDirectory + "/" + serverID.ToString())) {
-
-
-            }
+                Database.DropServer(serverID);
+                Logger.Write(LogType.Info, "server '{0}' was removed from database", serverID);                
+            } else { Logger.Write(LogType.Error, "Database does not contain information for '{0}'!", serverID.ToString()); }
             return false;
         }
 
@@ -247,11 +243,13 @@ namespace MCMultiServer.Net {
 
                 System.Threading.Thread.Sleep(1000);
 
+                
                 if (_isWin32) {
                     serv.Start(Paths.JVMInstance.JREPath + @"/" + Paths.JVMInstance.javaExecutable);
                 } else {
                     serv.Start(Paths.JVMInstance.JREPath + @"/" + Paths.JVMInstance.javaExecutableUNIX);
                 }
+                Logger.Write(LogType.Info, "server with an id of '{0}' was started", serv.ID);
                 return true;
             }
             return false;
@@ -264,6 +262,7 @@ namespace MCMultiServer.Net {
                 Server serv = AllServers.GetServer(serverID);
                 if (serv.IsRunning) {
                     serv.Shutdown();
+                    Logger.Write(LogType.Info, "server '{0}' was requested to stop");
                     return true;
                 }
             }

@@ -62,8 +62,10 @@ namespace MCDebug.Commands {
                         }
                     }
 
-                    Manager.StartServer(srv.ID);
-                    Console.WriteLine("{0} has been started", srv.DisplayName);
+                    if (Manager.StartServer(srv.ID))
+                        Console.WriteLine("'{0}' has been started", srv.DisplayName);
+                    else
+                        Console.WriteLine("'{0}' was unable to start, please try again", srv.DisplayName);
                     break;
                 case "stop":
                     if (!srv.IsRunning) {

@@ -14,11 +14,13 @@ namespace MCMultiServer.Srv {
         public string PropertyFile { get; set; }
         
         public MinecraftProperties() { }
-        public MinecraftProperties(String file) { Load(file); }
+        public MinecraftProperties(String file) {
+            Load(file);
+        }
 
        //Load via file. Use Add() if not adding via file.
         public void Load(String file) {
-            if (!File.Exists(file)) { throw new IOException("File Cannot be Found"); }
+            if (!File.Exists(file)) { throw new IOException("server.properties cannot be found"); }
             //read each line and split.
             PropertyFile = file;
             foreach (string line in File.ReadAllLines(file)) {

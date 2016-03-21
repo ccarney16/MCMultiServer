@@ -47,7 +47,7 @@ namespace MCMultiServer.Net {
 
             Loaded = true;
 
-            Logger.Write(LogType.Info, "[{0}] Started Database", DBType);
+            Logger.Write(LogType.Info, "[{0}] Started Database", info.Name);
             if (Flags != null) {
                 Logger.Write(LogType.Info, "Database Supports: {0}");
             } else {
@@ -74,7 +74,7 @@ namespace MCMultiServer.Net {
 
         //Inside the Database system
         protected void OnLog(String s) {
-            Logger.Write(LogType.Info, "[{0}] " + s, DBType);
+            Logger.Write(LogType.Info, "[{0}] " + s, info.Name);
         }
 
         //init method

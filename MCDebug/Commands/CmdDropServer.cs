@@ -87,11 +87,13 @@ namespace MCDebug.Commands {
                     System.IO.Directory.Move(srv.RootDirectory, srv.RootDirectory + "." + srv.DisplayName);
                 }
 
-                if (inDB != false) {
-                    Database.DropServer(srv.ID);
-                }
-
+                //unloads the server
                 Manager.RemoveServer(srv.ID);
+
+                //and fully removes the data
+                if (inDB != false) {
+                    Manager.DropServer(srv.ID);
+                }
                 srv.Dispose();
             } else {
                 Console.WriteLine("Aborted");

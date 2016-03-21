@@ -31,6 +31,8 @@ namespace MCDebug.Commands {
             Console.WriteLine();
 
             CommandMode.ConsoleInput();
+
+            CommandMode.ActiveServer = Guid.Empty;
             Console.WriteLine();
             Console.WriteLine("Console Closed");
         }
