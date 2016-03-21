@@ -93,7 +93,6 @@ namespace MCMultiServer.Net {
             }
         }
 
-
         public static void Write(string message) {
             Write(LogType.Info, message);
         }

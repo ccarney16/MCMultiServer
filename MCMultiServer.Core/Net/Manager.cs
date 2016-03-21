@@ -33,6 +33,7 @@ namespace MCMultiServer.Net {
             Paths.CheckDirectories();
 
             JarManager.Init();
+            NewJarManager.Init();
 
             //test code for plugin system
             //Assembly assem = Assembly.LoadFile(Paths.ConfigDirectory + "/MCMultiServer.Web.dll");
@@ -86,7 +87,7 @@ namespace MCMultiServer.Net {
                             int procid = Convert.ToInt32(File.ReadAllText(Paths.ServerDirectory + "/" + prop.ServerID.ToString() + "/minecraft.pid"));
                             System.Diagnostics.Process proc = System.Diagnostics.Process.GetProcessById(procid);
                             proc.Kill();
-                        } catch {}
+                        } catch { throw; }
                     }
                     AddServer(prop.ServerID);
                     if (Settings.AutoStart) {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Timers;
 
-//Basic Logging Class, this needs to be rewritten.
+//THIS LOGGER HAS BEEN RETIRED, PENDING REMOVAL
 namespace MCMultiServer.Net {
 
     //Basic Log Types, will extend later.

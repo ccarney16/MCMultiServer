@@ -116,6 +116,7 @@
     <Compile Include="Util\IPMap.cs" />
     <Compile Include="Util\JarManager.cs" />
     <Compile Include="Util\JavaInstance.cs" />
+    <Compile Include="Util\NewJarManager.cs" />
     <Compile Include="Util\Unix.cs" />
     <Compile Include="Util\Win32.cs" />
   </ItemGroup>
