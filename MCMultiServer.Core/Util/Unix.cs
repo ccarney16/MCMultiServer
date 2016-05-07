@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MCMultiServer.Util {
     /// <summary>
-    /// unix version of utility functions (currently supports ubuntu)
+    /// unix version of utility functions
     /// </summary>
     class Unix {
         public static String[] ValidJREVer = { "1.7", "1.8" };

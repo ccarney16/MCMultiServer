@@ -13,6 +13,7 @@ namespace MCDebug.Commands {
         public override void Use(string args) {
             if (args == null || args == String.Empty) {
                 base.ReturnHelp(Help);
+                return;
             }
 
             

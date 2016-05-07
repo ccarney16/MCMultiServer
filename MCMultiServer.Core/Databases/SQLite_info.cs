@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using MCMultiServer.Net;
 
 namespace MCMultiServer.Databases {
     //Basic SQLite Information
@@ -18,5 +19,6 @@ namespace MCMultiServer.Databases {
                 return fvi.FileVersion;
             }
         }
+        public override DatabaseFlags[] DBFlags { get { return new DatabaseFlags[] { DatabaseFlags.Query_Support, DatabaseFlags.Json_Support }; } }
     }
 }

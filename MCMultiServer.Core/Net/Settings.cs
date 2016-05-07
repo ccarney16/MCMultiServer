@@ -6,10 +6,11 @@ namespace MCMultiServer.Net {
     public static class Settings {
         //Default url's
         public const String DEFAULT_URL = "http://EXAMPLE.COM";
-        public const String UPDATE_URL = "http://UPDATE.EXAMPLE.COM";
+        public const String UPDATE_URL = "http://update.example.com/";
+        public const String UPDATE_FILE = "updater.json";
 
         //ID for a node server
-        public static String NodeID { get; private set; }
+        //public static String NodeID { get; private set; }
 
         //Database Information
         public static String Database { get; private set; }
@@ -20,6 +21,7 @@ namespace MCMultiServer.Net {
 
         //For Windows, MCMS will check for an installed Java instance and attempt to use it
         public static Boolean CheckInstalledJava { get; private set; }
+        public static string JREPath { get; private set; }
 
         //only set to false during debug use. otherwise, it still stay as it is.
         public static Boolean LoadAllServers { get; private set; }
@@ -30,6 +32,8 @@ namespace MCMultiServer.Net {
         //Autostart all Servers
         public static Boolean AutoStart { get; private set; }
 
+        public static Boolean UseJarManager { get; private set; } = true;
+
 
         //Loads the database config
         private static Boolean loaded = false;
@@ -38,7 +42,7 @@ namespace MCMultiServer.Net {
             if (loaded) { return; }
 
             //Throw Error Exception on missing the config file
-            if (!File.Exists(Paths.ConfigurationFile)) {
+            if (!File.Exists(Paths.ConfigDirectory + "\\" + Paths.ConfigurationFile)) {
                 throw new IOException("config file does not exist");
             }
 
@@ -66,6 +70,10 @@ namespace MCMultiServer.Net {
                             break;
                         case "mb-memory-allocation":
                             MaxMemoryAllocation = Convert.ToInt32(split[1]);
+                            break;
+                        case "jre-path":
+                            //used only if auto detect is disabled
+                            JREPath = split[1];
                             break;
                         default:
                             Logger.Write(LogType.Warning, "unknown setting {0}", split[1]);

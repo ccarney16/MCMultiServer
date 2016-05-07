@@ -108,4 +108,10 @@ namespace MCMultiServer.Net {
             Write(type, String.Format(message, values));
         }
     }
+
+    public enum LogType : byte {
+        Info,
+        Warning,
+        Error
+    }
 }

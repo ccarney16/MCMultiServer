@@ -10,7 +10,9 @@ namespace MCMultiServer.Net.Plugins {
         public string configFile;
         public string dataFolder;
 
-        public virtual void OnLoad() { }
+        public virtual void OnLoad() {
+
+        }
         public virtual void OnEnable() { }
 
         public virtual void OnDisable() { }

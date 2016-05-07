@@ -42,7 +42,7 @@ namespace MCDebug.Commands {
                 return;
             }
 
-            switch (a[1]) {
+            switch (a[1].ToLower()) {
                 case "start":
                     if (srv.IsRunning) {
                         Console.WriteLine("{0} is already running", srv.DisplayName);
@@ -50,16 +50,8 @@ namespace MCDebug.Commands {
                     }
 
                     if (!File.Exists(Paths.ServerDirectory + "/" + srv.ID.ToString() + "/" + srv.Properties.JarFile)) {
-                        if (srv.Properties.Type == ServerType.Minecraft) {
-                            Console.WriteLine("Jar File does not exist, replacing...");
-                            if (!File.Exists(Paths.JarDirectory + "/minecraft_server." + srv.Properties.MCVersion + ".jar")) {
-                                MCMultiServer.Util.JarManager.DownloadFile(srv.Properties.MCVersion);
-                            }
-                            File.Copy(Paths.JarDirectory + "/minecraft_server." + srv.Properties.MCVersion + ".jar", srv.RootDirectory + "/" + srv.Properties.JarFile);
-                        } else {
-                            Console.WriteLine("{0} does not have a java jar file placed, please do so before starting.");
-                            return;
-                        }
+                        Console.WriteLine("Unable to find jar file, please place a jar file in or do 'server {0} update'", srv.DisplayName);
+                        return;
                     }
 
                     if (Manager.StartServer(srv.ID))
@@ -84,16 +76,33 @@ namespace MCDebug.Commands {
                     Console.WriteLine("{0} was restarted", srv.DisplayName);
                     break;
                 case "update":
+                    if (!MCMultiServer.Util.JarManager.IsSetup) { Console.WriteLine("Jar manager is currently not running, you must manually install a jar file into the server directory."); return; }
+                    if (srv.Properties.JarEntryName == null) {
+                        Console.WriteLine("Error, Jar Entry cannot be empty");
+                        return;
+                    }
+
                     if (srv.Properties.Type == ServerType.Minecraft) {
+                        if (MCMultiServer.Util.JarManager.GetJarFileEntry(srv.Properties.JarEntryName) == null) {
+                            Console.WriteLine("Invalid jar entry");
+                            return;
+                        }
+
                         Console.WriteLine("Updating jar file for {0}", srv.DisplayName);
-                        if (!File.Exists(Paths.JarDirectory + "/minecraft_server." + srv.Properties.MCVersion + ".jar")) {
-                            MCMultiServer.Util.JarManager.DownloadFile(srv.Properties.MCVersion);
+
+                        if (!File.Exists(Paths.JarDirectory + "/minecraft_server." + srv.Properties.JarEntryName + ".jar")) {
+                            try {
+                                MCMultiServer.Util.JarManager.DownloadJarFile(srv.Properties.JarEntryName);
+                            } catch {
+                                Logger.Write(LogType.Error, "unable to download jar file, please manually install the jar file.");
+                                return;
+                            }
                         }
 
                         if (File.Exists(srv.RootDirectory + "/" + srv.Properties.JarFile)) {
                             File.Delete(srv.RootDirectory + "/" + srv.Properties.JarFile);
                         }
-                        File.Copy(Paths.JarDirectory + "/minecraft_server." + srv.Properties.MCVersion + ".jar", srv.RootDirectory + "/" + srv.Properties.JarFile);
+                        File.Copy(Paths.JarDirectory + "/minecraft_server." + srv.Properties.JarEntryName + ".jar", srv.RootDirectory + "/" + srv.Properties.JarFile);
 
                         Console.WriteLine("{0} updated", srv.DisplayName);
                     } else {

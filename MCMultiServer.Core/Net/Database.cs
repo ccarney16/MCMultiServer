@@ -24,7 +24,7 @@ namespace MCMultiServer.Net {
         public static String GetName() { return info.Name; }
 
         //Get Database Instance Flags
-        protected static DatabaseFlags[] Flags { get { return dbInstance.supportedFlags; } }
+        protected static DatabaseFlags[] Flags { get { return info.DBFlags; } }
 
         //Checks if the Database is Loaded.
         public static Boolean Loaded { get; private set; } = false;
@@ -40,6 +40,7 @@ namespace MCMultiServer.Net {
 
             dbInstance = GetDBInstance(dbtype);
 
+            //have to move this to its own method sometime.
             Type i = Type.GetType(dbtype + "_info");
             if (i == null || i.BaseType != Type.GetType("MCMultiServer.Net.dbinfo")) throw new ArgumentException("Invalid or Null database");
             //Lets turn that type into an object
@@ -47,11 +48,15 @@ namespace MCMultiServer.Net {
 
             Loaded = true;
 
-            Logger.Write(LogType.Info, "[{0}] Started Database", info.Name);
+            Logger.Write(LogType.Info, "[{0}] Loaded Database", info.Name);
             if (Flags != null) {
-                Logger.Write(LogType.Info, "Database Supports: {0}");
+                string flagsstr = "";
+                foreach (DatabaseFlags f in Flags) {
+                    flagsstr += Enum.GetName(typeof(DatabaseFlags), f) + ",";
+                }
+                Logger.Write(LogType.Info, "[{0}] Flags: {1}", info.Name, flagsstr);
             } else {
-                Logger.Write(LogType.Warning, "Database has no Flags (many features will not be used)");
+                Logger.Write(LogType.Warning, "[{0}] Database has no Flags (many features will not be used)", info.Name);
             }
         }
 
@@ -105,9 +110,6 @@ namespace MCMultiServer.Net {
         public abstract String[] getIPMap();
         public abstract Boolean removeIPMap(string ip); 
 
-        //public abstract String[] getAutoLoadList();
-        //public abstract Boolean isAutoload(Guid serverID);
-        //public abstract Boolean setAutoLoad(Guid serverID, Boolean enabled = false);
 
         //Public callable methods
         public static void AddServer(Guid serverID, String serverName, Srv.ServerProperties properties) {
@@ -141,14 +143,19 @@ namespace MCMultiServer.Net {
     //Supported options
     public enum DatabaseFlags : byte {
         //Override settings
-        Settings_Override = 0,
+        Settings_Override,
+        //able to support queries.
+        Query_Support,
+        //Support for Json.NET
+        Json_Support,
         //Makes sure that the database can handle multiple nodes.
-        Multi_Node = 1
+        Multi_Node
     }
 
     //information for the database class.
     public abstract class dbinfo {
         public abstract string Name { get; }
         public abstract string Version { get; }
+        public abstract DatabaseFlags[] DBFlags { get; }
     }
 }

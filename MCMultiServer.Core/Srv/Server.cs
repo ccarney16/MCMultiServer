@@ -20,20 +20,30 @@ namespace MCMultiServer.Srv {
         //Restart Timer, of course we need more timers...
         private Timer _restartTimer = new Timer();
 
-        //Name for server
+        /// <summary>
+        /// Server name, returned from Server.Properties.DisplayName
+        /// </summary>
         public String DisplayName { get { return Properties.DisplayName; } }
 
-        //ID for server
+        /// <summary>
+        /// Unique ID, returned from Server.Properties.DisplayName
+        /// </summary>
         public Guid ID { get { return Properties.ServerID; } }
 
         //Checks if the server is loaded.
         public Boolean Loaded { get; private set; } = false;
 
-        //Root Directory of the Server
+        /// <summary>
+        /// Root Directory of the server
+        /// </summary>
         public String RootDirectory { get; private set; } = String.Empty;
+
+        //Java runtime path.
         private String _jrePath;
 
-        //Server Properties
+        /// <summary>
+        /// Current Server Properties
+        /// </summary>
         public ServerProperties Properties { get; set; } = null;
 
         //Instance for the Minecraft Server
@@ -51,6 +61,7 @@ namespace MCMultiServer.Srv {
             }
         }
 
+        //Returns server errors
         private void ServerError(object sender, DataReceivedEventArgs e) {
             DateTime time = DateTime.Now;
 
@@ -61,15 +72,19 @@ namespace MCMultiServer.Srv {
         }
 
 
-        // Gets the value of the running server.
+        /// <summary>
+        /// Checks if the server is running or not
+        /// </summary>
         public Boolean IsRunning {
             get {
                 try { return !instance.HasExited; } catch { return false; }
             }
         }
 
-        //Grabs the ID of the Process.
-        public Int32 getRunningProcessID {
+        /// <summary>
+        /// Returns the server's running process's ID
+        /// </summary>
+        public Int32 GetRunningProcessID {
             get {
                 try { return instance.Id; } catch { return -1; }
             }
@@ -78,31 +93,41 @@ namespace MCMultiServer.Srv {
         //Cleanup the server object once the system is shutdown.
         private void _cleanupTimer_Elapsed(object sender, ElapsedEventArgs e) {
             if (!IsRunning) {
-                //delete the minecraft pid and property file
+                //delete the minecraft pid file
                 if (File.Exists(RootDirectory + "/minecraft.pid")) {
                     File.Delete(RootDirectory + "/minecraft.pid");
                 }
             }
         }
 
-        //Does the Server instance need to be reloaded?
+        /// <summary>
+        /// Indicates that the server has a restart pending.
+        /// </summary>
         public Boolean RestartNeeded { get; internal set; } = false;
 
-        public Int32 GetRuntimeProcessID() { return instance.Id; }
-
+        /// <summary>
+        /// Loads all resources into the server instance.
+        /// </summary>
+        /// <param name="rootdir">Directory of the server</param>
+        /// <param name="prop">Server Properties</param>
         public void Load(String rootdir, ServerProperties prop) {
             if (Loaded) { LogOutput("Server is already loaded!", this.ID); }
             try {
                 Properties = prop;
                 RootDirectory += rootdir;
                 Loaded = true;
-
+               
                 //Restart timer will only react in 5 seconds.
                 _restartTimer.Interval = 5000;
                 _restartTimer.Elapsed += _restartTimer_Elapsed;
-            } catch (Exception ex) { throw ex; }
+            } catch (Exception e) {
+                //not the best solution as of now, but it will do.
+                //ReportError(e, this.ID);
+                throw e;
+            }
         }
 
+        //restart timer method
         int _restartcount = 0;
         private void _restartTimer_Elapsed(object sender, ElapsedEventArgs e) {
             if (RestartNeeded & !IsRunning) {
@@ -119,6 +144,9 @@ namespace MCMultiServer.Srv {
             _restartcount++;
         }
 
+        /// <summary>
+        /// Restarts the Server.
+        /// </summary>
         public void Restart() {
             if (!Loaded) { ErrorOutput("Server is not loaded!", this.ID); return; }
             if (!IsRunning) { LogOutput("Server is not running!", this.ID); return; }
@@ -142,6 +170,9 @@ namespace MCMultiServer.Srv {
             Properties = new ServerProperties();
         }
 
+        /// <summary>
+        /// Crafts arguements based on current properties
+        /// </summary>
         private string createArguements() {
             string args = "";
             if (this.Properties.Type != ServerType.Custom) {
@@ -157,11 +188,15 @@ namespace MCMultiServer.Srv {
             return args;
         }
 
+        //replace some time...
         private string getJREPath() {
             return Net.Paths.JVMInstance.JREPath;
         }
 
-        //starts server
+        /// <summary>
+        /// Starts a server instance
+        /// </summary>
+        /// <param name="jrePath"></param>
         public void Start(string jrePath) {
             //Block of Exception code.
             if (!Loaded) { LogOutput("Server is not loaded!", this.ID); return; }
@@ -193,7 +228,7 @@ namespace MCMultiServer.Srv {
             instance.BeginErrorReadLine();
 
             if (_checkupTimer.Enabled) {
-                _checkupTimer.Interval = 5000;
+                _checkupTimer.Interval = 500;
                 _checkupTimer.Elapsed += _cleanupTimer_Elapsed;
                 _checkupTimer.Start();
             }
@@ -204,7 +239,11 @@ namespace MCMultiServer.Srv {
             }
         }
 
-        //Shuts down the server. Keep cleanup to true
+        /// <summary>
+        /// Shutdown a server instance.
+        /// </summary>
+        /// <param name="force"></param>
+        /// <param name="cleanup"></param>
         public void Shutdown(Boolean force = false, Boolean cleanup = true) {
             if (!Loaded) {
                 ErrorOutput("Server is not loaded!", this.ID);
@@ -241,13 +280,18 @@ namespace MCMultiServer.Srv {
         }
     }
 
+    /// <summary>
+    /// An object for handling server properties
+    /// </summary>
     public class ServerProperties {
-        //Used for Databases
-        [JsonIgnore]
-        public String DisplayName = String.Empty;
         [JsonIgnore]
         public Guid ServerID = Guid.Empty;
-        [JsonIgnore]
+
+        //Used for Databases
+        [JsonProperty(PropertyName = "server-name")]
+        public String DisplayName = String.Empty;
+
+        [JsonProperty(PropertyName = "date-created")]
         public DateTime DateCreated;
 
         /// <summary>
@@ -268,6 +312,12 @@ namespace MCMultiServer.Srv {
         /// </summary>
         [JsonProperty(PropertyName = "mc-version")]
         public String MCVersion;
+
+        /// <summary>
+        /// Name of Jar entry in jar manager;
+        /// </summary>
+        [JsonProperty(PropertyName = "jar-entry-name")]
+        public String JarEntryName;
 
         /// <summary>
         /// The amount of memory java can use
@@ -299,8 +349,9 @@ namespace MCMultiServer.Srv {
         [JsonProperty(PropertyName = "server-port")]
         public Int32 Port;
     }
+
     /// <summary>
-    /// Different server types for Minecraft, most common are vanilla and CraftBukkit
+    /// Different server types for Minecraft.
     /// </summary>
     public enum ServerType : Byte {
         /// <summary>

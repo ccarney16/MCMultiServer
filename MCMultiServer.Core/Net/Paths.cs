@@ -14,7 +14,6 @@ namespace MCMultiServer.Net {
         public static String ServerDirectory { get { return DataDirectory + "/servers"; } }
         public static String BackupDirectory { get { return DataDirectory + "/backup"; } }
         public static String DatabaseDirectory { get { return DataDirectory + "/db"; } }
-        public static String PluginDirectory { get { return DataDirectory + "/plugins"; } }
         public static String JarDirectory { get { return DataDirectory + "/jar"; } }
 
         //java instance for a node.

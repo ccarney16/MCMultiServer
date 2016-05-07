@@ -23,8 +23,8 @@ namespace MCDebug.Commands {
         }
 
         public override void Use(string args) {
-            if (args == null || args == string.Empty) {
-                Console.WriteLine("not enough args");
+            if (args == string.Empty || args == null) {
+                base.ReturnHelp(this.Help);
                 return;
             }
 
@@ -77,6 +77,7 @@ namespace MCDebug.Commands {
             if (prompt.ToLower().StartsWith("y")) {
                 if (a[1].ToLower() == "rmdir") {
                     try {
+                        Console.WriteLine("Deleting Directory.");
                         System.IO.Directory.Delete(srv.RootDirectory, true);
                     } catch (System.IO.IOException e) {
                         Console.WriteLine(e.HResult);
@@ -84,6 +85,7 @@ namespace MCDebug.Commands {
                         return;
                     }
                 } else {
+                    Console.WriteLine("Renaming Directory");
                     System.IO.Directory.Move(srv.RootDirectory, srv.RootDirectory + "." + srv.DisplayName);
                 }
 

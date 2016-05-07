@@ -36,7 +36,6 @@ namespace MCMultiServer.Databases {
             //create the server list table. 
             executeQuery(@"CREATE TABLE IF NOT EXISTS `mcms_serverlist` (
 	                `guid` TEXT NOT NULL,
-	                `server_name` TEXT NOT NULL,
 	                `date_created` TEXT NULL,
 	                `settings` LONGTEXT NULL,
                     PRIMARY KEY(`guid`));");
@@ -90,12 +89,13 @@ namespace MCMultiServer.Databases {
             if (serverName == null) { OnLog("Server Name is empty"); return false; }
 
             string current = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            executeQuery("INSERT INTO mcms_serverlist (guid, server_name, date_created, settings) VALUES ('" + serverID.ToString() + "','" + serverName + "', '" + current.ToString() + "','" + Newtonsoft.Json.JsonConvert.SerializeObject(properties) + "');");
+            executeQuery("INSERT INTO mcms_serverlist (guid, date_created, settings) VALUES ('" + serverID.ToString() + "','" + current.ToString() + "','" + Newtonsoft.Json.JsonConvert.SerializeObject(properties) + "');");
             return true;
         }
 
+        //No longer in use, will be removed at a later date
         public override bool changeServerName(Guid serverID, String newName) {
-            executeQuery("UPDATE 'mcms_serverlist' SET server_name='" + newName + "' WHERE GUID");
+            //executeQuery("UPDATE 'mcms_serverlist' SET server_name='" + newName + "' WHERE GUID");
             return true;
         }
 
@@ -127,7 +127,7 @@ namespace MCMultiServer.Databases {
                 //setup id
                 prop.ServerID = Guid.Parse(srvdate.Rows[0]["guid"].ToString());
                 //setup name
-                prop.DisplayName = srvdate.Rows[0]["server_name"].ToString();
+                //prop.DisplayName = srvdate.Rows[0]["server_name"].ToString();
             } catch { return null; }
 
             return prop;
@@ -143,7 +143,6 @@ namespace MCMultiServer.Databases {
                 ServerProperties prop = new ServerProperties();
                 prop = Newtonsoft.Json.JsonConvert.DeserializeObject<ServerProperties>(row["settings"].ToString());
 
-                prop.DisplayName = row["server_name"].ToString();
                 prop.ServerID = Guid.Parse(row["guid"].ToString());
 
                 //Since SQLite does not have any date functions, we have to convert it.
@@ -167,7 +166,6 @@ namespace MCMultiServer.Databases {
                 ServerProperties prop = new ServerProperties();
                 prop = Newtonsoft.Json.JsonConvert.DeserializeObject<ServerProperties>(row["settings"].ToString());
 
-                prop.DisplayName = row["server_name"].ToString();
                 prop.ServerID = Guid.Parse(row["guid"].ToString());
 
                 prop.DateCreated = Convert.ToDateTime(row["date_created"].ToString());

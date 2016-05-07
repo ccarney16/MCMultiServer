@@ -1,114 +1,147 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-
-using MCMultiServer.Net;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using MCMultiServer.Srv;
+using MCMultiServer.Net;
+
 namespace MCMultiServer.Util {
     public static class JarManager {
-        public static MojangReleases _releases;
+        public static Boolean IsSetup { get; private set; } = false;
+
+        //list of all versions, useful for custom jar files.
+        private static List<String> _validVersions = new List<String>();
+        public static List<Jar> JarFileEntries = new List<Jar>();
+
+        public static String LatestRelease;
+
+        private static String _MCURL = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
 
         public static void Init() {
-            //moving to jar manager when ready
-            Logger.Write(LogType.Info, "loading jar manager");
-            using (WebClient webClient = new WebClient()) {
-                try {
-                    webClient.DownloadFile(new Uri("https://launchermeta.mojang.com/mc/game/version_manifest.json"), Paths.DataDirectory + @"\new.versions.json");
+            Logger.Write("starting jar manager");
+            //import later
+            //JarFileEntries = (List<Jar>)JsonConvert.DeserializeObject(File.ReadAllText("./jarentries.json"));
 
-                    //delete the old file
-                    if (File.Exists(Paths.DataDirectory + @"/versions.json")) {
-                        File.Delete(Paths.DataDirectory + @"/versions.json");
-                    }
+            UpdateMojang();
 
-                    File.Copy(Paths.DataDirectory + @"/new.versions.json", Paths.DataDirectory + @"/versions.json");
-                    File.Delete(Paths.DataDirectory + @"/new.versions.json");
-                } catch {
-                    Logger.Write(LogType.Warning, "Unable to download latest versions, using an old list.");
-                }
-            }
-
-            MojangReleases versions = JsonConvert.DeserializeObject<MojangReleases>(File.ReadAllText(Paths.DataDirectory + "/versions.json"));
-            _releases = versions;
-
+            string msg = "Jar Entries: ";
             int count = 0;
-            string msg = null;
-            msg += "Minecraft Versions: ";
-            foreach (MojangReleases._versions ver in _releases.AllVersions) {
+            foreach (Jar j in JarFileEntries) {
                 if (count != 6) {
-                    msg = msg + ver.ID + ", ";
+                    msg = msg + j.Name + "; ";
                     count++;
                 } else {
-                    Logger.Write(LogType.Info, msg + "" + ver.ID);
+                    Logger.Write(LogType.Info, msg + "" + j.Name + "; ");
                     count = 0;
                     msg = null;
                 }
-            } 
-        }
-
-        public static bool VersionExists(string version) {
-            foreach (MojangReleases._versions ver in _releases.AllVersions) {
-                if (ver.ID == version) {
-                    return true;
-                }
             }
-            return false;
+            Logger.Write(msg);
+            //lets load up everything up.
+            Logger.Write("jar manager finished");
+            IsSetup = true;            
         }
 
-
-        //allows downloading snapshots now.
-        public static void DownloadFile(string version) {
-            MojangReleases._versions ver = new MojangReleases._versions();
-            foreach (MojangReleases._versions v in _releases.AllVersions) {
-                if (v.ID == version) {
-                    ver = v;
-                } 
+        public static void DownloadJarFile(string name) {
+            if (name == null) { throw new ArgumentException("name cannot be null"); }
+            Jar j = GetJarFileEntry(name);
+            if (j == null) {
+                return;
             }
 
             using (WebClient client = new WebClient()) {
                 try {
-                    string json = client.DownloadString(ver.Url);
+                    string json = client.DownloadString(j.Url);
                     JObject obj = JObject.Parse(json);
 
                     string serverurl = obj["downloads"]["server"]["url"].ToString();
-                    Logger.Write(LogType.Info, "attempting to download version {0}", ver.ID);
-                    client.DownloadFile(serverurl, Paths.JarDirectory + "/minecraft_server." + ver.ID + ".jar");
-                } catch (Exception e) {
-                    throw e;
+                    Logger.Write(LogType.Info, "attempting to download version {0}", j.Name);
+                    client.DownloadFile(serverurl, Paths.JarDirectory + "/minecraft_server." + j.Name + ".jar");
+                } catch {
+                    throw;
                 }
             }
         }
+
+        //Returns a jar file, decided to reuse this a few times.
+        public static Jar GetJarFileEntry(string name) {
+            if (name == null) { throw new ArgumentException("name cannot be null"); }
+            foreach (Jar j in JarFileEntries) {
+                if (j.Name.ToLower() == name.ToLower()) {
+                    //we are done here.
+                    return j;
+                }
+            }
+            //return an empty jar entry that does not exist.
+            return null;
+        }
+
+        //empty for now...
+        public static void UpdateMojang() {
+            Logger.Write("Updating jar manager...");
+            using (WebClient webClient = new WebClient()) {
+                try {
+                    webClient.DownloadFile(new Uri(_MCURL), Paths.DataDirectory + @"/new.versions.json");
+
+                    //we need to make sure that the file im looking for exists.
+                    if (File.Exists(Paths.DataDirectory + @"/new.versions.json")) {
+                        //delete the old file
+                        if (File.Exists(Paths.DataDirectory + @"/versions.json")) {
+                            File.Delete(Paths.DataDirectory + @"/versions.json");
+                        }
+
+                        File.Copy(Paths.DataDirectory + @"/new.versions.json", Paths.DataDirectory + @"/versions.json");
+                        File.Delete(Paths.DataDirectory + @"/new.versions.json");
+                    }
+                } catch {
+                    if (File.Exists(Paths.DataDirectory + "/versions.json")) {
+                        Logger.Write(LogType.Error, "unable to download a new version list from mojang, using old list");
+                    } else {
+                        //I have nothing else to do if the file im looking for does not exist
+                        throw;
+                    }
+                }
+            }
+
+            Boolean useBeta = false;
+            JObject jlist = (JObject)JsonConvert.DeserializeObject(File.ReadAllText("versions.json"));
+            foreach (JToken obj in jlist["versions"]) {
+                if (obj["type"].ToString().ToLower() == "release" | (obj["type"].ToString().ToLower() == "snapshot" && useBeta)) {
+                    if (GetJarFileEntry(obj["id"].ToString() + "-Mojang") == null) {
+                        Jar j = new Jar();
+                        j.type = ServerType.Minecraft;
+                        //just the version number, will also place in valid versions.
+                        j.Version = obj["id"].ToString();
+                        //1.5.2-Mojang, sounds about right
+                        j.Name = obj["id"].ToString() + "-Mojang";
+                        //only for mojang jar files.
+                        j.Url = obj["url"].ToString();
+                        JarFileEntries.Add(j);
+                    }
+                    if (_validVersions.Contains(obj["id"].ToString())) {
+                        _validVersions.Add(obj["id"].ToString());
+                    }
+                }
+            }
+            LatestRelease = jlist["latest"]["release"].ToString();
+        }
     }
 
-    //information for Minecraft releases
-    public class MojangReleases {
+    public class Jar {
+        [JsonProperty("jar-name")]
+        public string Name;
 
-        [JsonProperty(PropertyName = "latest")]
-        public _latest LatestReleases;
-        public struct _latest {
-            public string snapshot;
-            public string release;
-        }
+        [JsonProperty("version")]
+        public string Version;
 
-        [JsonProperty(PropertyName = "versions")]
-        public _versions[] AllVersions;
-        public struct _versions {
-            [JsonProperty(PropertyName = "id")]
-            public string ID;
+        [JsonProperty("url")]
+        public string Url;
 
-            [JsonProperty(PropertyName = "time")]
-            public string Date;
-
-            [JsonProperty(PropertyName = "releaseTime")]
-            public string ReleaseTime;
-
-            [JsonProperty(PropertyName = "type")]
-            public string Type;
-
-            [JsonProperty(PropertyName = "url")]
-            public string Url;
-        }
+        [JsonProperty("type")]
+        public ServerType type;
     }
 }

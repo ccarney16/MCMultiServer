@@ -10,8 +10,24 @@ namespace MCDebug {
             Console.Write("#> ");
             string con = Console.ReadLine();
             if (con != "exit") return RunCommand(con);
+
             //Program specific code goes here...
             Manager.StopAllServers();
+            bool WaitUntilClosed = true;
+            do {
+                if (Manager.AllServers.Count == 0) {
+                    WaitUntilClosed = false;
+                }
+                foreach (MCMultiServer.Srv.Server s in Manager.AllServers) {
+                    if (s.IsRunning) {
+                        WaitUntilClosed = true;
+                        break;
+                    } else {
+                        WaitUntilClosed = false;
+                    }
+                }
+                System.Threading.Thread.Sleep(500);
+            } while (WaitUntilClosed);
             return false;
         }
 

@@ -33,6 +33,7 @@ namespace MCMultiServer.Util {
             return false;
         }
 
+        //checks version based on system architecture.
         public static String CheckVersion() {
             RegistryKey reg = Registry.LocalMachine;
             RegistryKey subKey = reg.OpenSubKey(_regjre);
@@ -44,6 +45,7 @@ namespace MCMultiServer.Util {
             return null;
         }
 
+        //returns the jre path. x64 only for now.
         public static String JREPath() {
             RegistryKey reg = Registry.LocalMachine;
             RegistryKey subKey = reg.OpenSubKey(@"SOFTWARE\JavaSoft\Java Runtime Environment\" + CheckVersion());

@@ -90,13 +90,15 @@
     <Compile Include="Databases\SQLite.cs" />
     <Compile Include="Databases\SQLite_info.cs" />
     <Compile Include="Net\Database.cs" />
-    <Compile Include="Net\Old_Logger.cs" />
+    <Compile Include="Net\Jobs\Job.cs" />
+    <Compile Include="Net\Jobs\JobBase.cs" />
     <Compile Include="Net\Manager.cs" />
     <Compile Include="Net\Logger.cs" />
     <Compile Include="Net\Paths.cs" />
     <Compile Include="Net\Plugins\Plugin.cs" />
     <Compile Include="Net\Plugins\PluginManager.cs" />
     <Compile Include="Net\Settings.cs" />
+    <Compile Include="Net\Updater.cs" />
     <Compile Include="Permissions\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -114,9 +116,9 @@
     <Compile Include="Srv\ServerList.cs" />
     <Compile Include="Util\Func.cs" />
     <Compile Include="Util\IPMap.cs" />
-    <Compile Include="Util\JarManager.cs" />
     <Compile Include="Util\JavaInstance.cs" />
-    <Compile Include="Util\NewJarManager.cs" />
+    <Compile Include="Util\JarManager.cs" />
+    <Compile Include="Srv\MinecraftStatus.cs" />
     <Compile Include="Util\Unix.cs" />
     <Compile Include="Util\Win32.cs" />
   </ItemGroup>
