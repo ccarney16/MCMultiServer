@@ -15,10 +15,12 @@ namespace MCMultiServer.Util {
 
         //list of all versions, useful for custom jar files.
         private static List<String> _validVersions = new List<String>();
+        //All Entries for minecraft
         public static List<Jar> JarFileEntries = new List<Jar>();
 
         public static String LatestRelease;
 
+        //Url for mojang's list
         private static String _MCURL = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
 
         public static void Init() {
@@ -107,6 +109,7 @@ namespace MCMultiServer.Util {
                 }
             }
 
+            //Ability to use snapshots
             Boolean useBeta = false;
             JObject jlist = (JObject)JsonConvert.DeserializeObject(File.ReadAllText("versions.json"));
             foreach (JToken obj in jlist["versions"]) {
@@ -138,6 +141,7 @@ namespace MCMultiServer.Util {
         [JsonProperty("version")]
         public string Version;
 
+        //Url for jar file, useless on non minecraft releases
         [JsonProperty("url")]
         public string Url;
 

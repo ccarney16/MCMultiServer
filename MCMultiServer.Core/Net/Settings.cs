@@ -32,7 +32,7 @@ namespace MCMultiServer.Net {
         //Autostart all Servers
         public static Boolean AutoStart { get; private set; }
 
-        public static Boolean UseJarManager { get; private set; } = true;
+        public static Boolean UseJarManager { get; private set; }
 
 
         //Loads the database config

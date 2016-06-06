@@ -40,7 +40,7 @@ namespace MCMultiServer.Srv {
         public void Save() {
             StreamWriter writer = new StreamWriter(PropertyFile);
             writer.WriteLine("#Minecraft server properties");
-            writer.WriteLine("#Edited by MCMS");
+            writer.WriteLine("#Edited by MCMultiServer");
             foreach (KeyValuePair<String, String> value in Properties) {
                 writer.WriteLine(value.Key + "=" + value.Value.ToString());
             }

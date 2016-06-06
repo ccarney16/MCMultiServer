@@ -1,12 +1,16 @@
 ﻿using System;
 using System.IO;
-
-//Provided from MCSharp, modified for use in MCMultiServer, Licensed under the MIT License.
+/*
+ * Logging Class provided by the MCSharp Project. Licensed under the MIT License.
+ * For Usage in MCMultiServer.
+ */
 namespace MCMultiServer.Net {
     public static class Logger {
+        //Still dont know why this was moved yet...
         const string LogDirectory = "logs/";
         const string LogFileName = "mcms";
 
+        //The format we will be using for the logs.
         const string TimeFormat = "hh:mm:ss tt";
 
         static string shortDateTime = "dd/MM/yyyy hh:mm:ss tt";
@@ -93,10 +97,10 @@ namespace MCMultiServer.Net {
             }
         }
 
+        //MCMultiServer's log handling functions.
         public static void Write(string message) {
             Write(LogType.Info, message);
         }
-
         
         public static void Write(LogType type, string message) {
             if (OnLog != null) {
@@ -106,6 +110,11 @@ namespace MCMultiServer.Net {
 
         public static void Write(LogType type, string message, params object[] values) {
             Write(type, String.Format(message, values));
+        }
+
+        //Handle Errors
+        public static void WriteError(Exception e) {
+
         }
     }
 

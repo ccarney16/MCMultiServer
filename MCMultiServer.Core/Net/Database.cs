@@ -38,13 +38,21 @@ namespace MCMultiServer.Net {
                 return;
             }
 
-            dbInstance = GetDBInstance(dbtype);
+            //dbInstance = GetDBInstance(dbtype);
 
-            //have to move this to its own method sometime.
+            //Find all the information first, then we can throw an exception
             Type i = Type.GetType(dbtype + "_info");
             if (i == null || i.BaseType != Type.GetType("MCMultiServer.Net.dbinfo")) throw new ArgumentException("Invalid or Null database");
-            //Lets turn that type into an object
             info = (dbinfo)System.Activator.CreateInstance(i);
+
+            //Now lets loads up the database
+            Type thistype = Type.GetType(dbtype);
+            if (thistype == null || thistype.BaseType != Type.GetType("MCMultiServer.Net.Database")) throw new ArgumentException("Invalid or Null database");
+
+            //Lets turn that type into an object
+            Object inst = System.Activator.CreateInstance(thistype);
+
+            dbInstance = (Database)inst;
 
             Loaded = true;
 
@@ -61,21 +69,6 @@ namespace MCMultiServer.Net {
         }
 
         public static Boolean Init() { return dbInstance.init(Settings.DatabaseConfig); }
-
-        //returns a database instance
-        private static Database GetDBInstance(String dbtype) {
-            try {
-                //gets the type of database
-                Type thistype = Type.GetType(dbtype);
-                if (thistype == null || thistype.BaseType != Type.GetType("MCMultiServer.Net.Database")) throw new ArgumentException("Invalid or Null database");
-
-                //Lets turn that type into an object
-                Object inst = System.Activator.CreateInstance(thistype);
-
-                //And load the (unsafe) object into DB..
-                return (Database)inst;
-            } catch { throw new InvalidCastException("Invalid Database instance"); }
-        }
 
         //Inside the Database system
         protected void OnLog(String s) {
@@ -142,7 +135,7 @@ namespace MCMultiServer.Net {
 
     //Supported options
     public enum DatabaseFlags : byte {
-        //Override settings
+        //Override most settings
         Settings_Override,
         //able to support queries.
         Query_Support,

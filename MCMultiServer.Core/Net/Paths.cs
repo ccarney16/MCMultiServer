@@ -13,6 +13,7 @@ namespace MCMultiServer.Net {
         //Ever changing Data
         public static String ServerDirectory { get { return DataDirectory + "/servers"; } }
         public static String BackupDirectory { get { return DataDirectory + "/backup"; } }
+        //only used for local databases only.
         public static String DatabaseDirectory { get { return DataDirectory + "/db"; } }
         public static String JarDirectory { get { return DataDirectory + "/jar"; } }
 

@@ -111,6 +111,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Srv\MCVersion.cs" />
     <Compile Include="Srv\MinecraftProperties.cs" />
     <Compile Include="Srv\Server.cs" />
     <Compile Include="Srv\ServerList.cs" />

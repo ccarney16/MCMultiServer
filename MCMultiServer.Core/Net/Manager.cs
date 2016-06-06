@@ -77,8 +77,8 @@ namespace MCMultiServer.Net {
 
 			//We are up and running, mostly.
             _isRunning = true;
+            
 
-            //Tell the memory we are using.
             Logger.Write(LogType.Info, "{0} MB of the {1} MB max allocated memory has been used", GetAllocatedMemory(), Settings.MaxMemoryAllocation);
             if (GetAllocatedMemory() > Settings.MaxMemoryAllocation) {
                 Logger.Write(LogType.Warning, "loaded allocated memory from the servers is over the max memory set, please remove a server or two before starting.");
@@ -185,10 +185,11 @@ namespace MCMultiServer.Net {
 
             //grabs the latest release, if possible
             if (JarManager.IsSetup) {
-                prop.MCVersion = JarManager.LatestRelease + "-Mojang";
-            }
+                prop.MCVersion = JarManager.LatestRelease;
+                prop.JarEntryName = JarManager.LatestRelease + "-Mojang";
+            } else {
 
-            prop.JarEntryName = JarManager.LatestRelease;
+            }
 
             prop.Optimize = true;
 
